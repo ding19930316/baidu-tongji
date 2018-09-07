@@ -1,0 +1,29 @@
+{
+    "name": "qqjt\/baidu-tongji",
+    "description": "Baidu tongji api",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "qqjt",
+            "email": "itkid@live.com"
+        }
+    ],
+    "require": {
+        "phpunit/phpunit": "^7.3",
+        "mockery/mockery": "^1.1",
+        "ext-zlib": "^7.2",
+        "ext-json": "^1.6",
+        "ext-openssl": "^7.2",
+        "ext-curl": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Qqjt\\BaiduTongji\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Qqjt\\BaiduTongji\\Tests\\": "tests/"
+        }
+    }
+}
