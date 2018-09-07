@@ -1,27 +1,53 @@
 <h1 align="center"> baidu-tongji </h1>
 
-<p align="center"> Baidu tongji api.</p>
+<p align="center"> 百度统计数据导出服务 Tongji API </p>
 
 
-## Installing
+## 安装
 
 ```shell
-$ composer require qqjt/baidu-tongji -vvv
+$ composer require qqjt/baidu-tongji
 ```
 
-## Usage
+## 使用
 
-TODO
+```php
+use Qqjt\BaiduTongji\Auth;
+use Qqjt\BaiduTongji\Report;
 
-## Contributing
+$accountType = 1; //ZhanZhang:1,FengChao:2,Union:3,Columbus:4
+$username = 'xxxx';
+$password = 'yyyy';
+$token = 'zzzz';
+$uuid = 'abcd1234';
 
-You can contribute in one of three ways:
+$auth = new Auth($accountType, $username, $password, $token, $uuid);
 
-1. File bug reports using the [issue tracker](https://github.com/qqjt/baidu-tongji/issues).
-2. Answer questions or fix bugs on the [issue tracker](https://github.com/qqjt/baidu-tongji/issues).
-3. Contribute new features or update the wiki.
+$res = $auth->login();
 
-_The code contribution process is not very formal. You just need to make sure that you follow the PSR-0, PSR-1, and PSR-2 coding guidelines. Any new code contributions must be accompanied by unit tests where applicable._
+$ucid = $res['ucid'];
+$st = $res['st'];
+
+$report = new Report($accountType, $username, $token, $uuid, $ucid, $st);
+
+$siteRes = $report->getSiteList();
+
+var_dump($siteRes);
+$siteList = $siteRes['body']['data'][0]['list'];
+$siteId = $siteList[0]['site_id'];
+
+$parameters = ['site_id' => $siteId,        //站点ID
+    'method' => 'trend/time/a',             //趋势分析报告
+    'start_date' => '20160501',             //所查询数据的起始日期
+    'end_date' => '20160531',               //所查询数据的结束日期
+    'metrics' => 'pv_count,visitor_count',  //所查询指标为PV和UV
+    'max_results' => 0,                     //返回所有条数
+    'gran' => 'day',                        //按天粒度
+];
+
+$dataRes = $report->getData($parameters);
+var_dump($dataRes);
+```
 
 ## License
 
