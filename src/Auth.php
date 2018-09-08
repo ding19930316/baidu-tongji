@@ -5,32 +5,56 @@ namespace Qqjt\BaiduTongji;
 
 class Auth
 {
-    private $username;
-
-    private $password;
-
-    private $accountType; //ZhanZhang:1,FengChao:2,Union:3,Columbus:4
-
-    private $token;
-
-    private $uuid;
+    private $config;
 
     private $headers;
 
+    public $ucid = null;
+
+    public $st = null;
+
     const LOGIN_URL = 'https://api.baidu.com/sem/common/HolmesLoginService';
 
-    public function __construct($accountType, $username, $password, $token, $uuid)
+    const PUBLIC_KEY = <<<publicKey
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHn/hfvTLRXViBXTmBhNYEIJeG
+GGDkmrYBxCRelriLEYEcrwWrzp0au9nEISpjMlXeEW4+T82bCM22+JUXZpIga5qd
+BrPkjU08Ktf5n7Nsd7n9ZeI0YoAKCub3ulVExcxGeS3RVxFai9ozERlavpoTOdUz
+EH6YWHP4reFfpMpLzwIDAQAB
+-----END PUBLIC KEY-----
+publicKey;
+
+
+    public function __construct($config)
     {
-        $this->accountType = $accountType;
-        $this->username = $username;
-        $this->password = $password;
-        $this->token = $token;
-        $this->uuid = $uuid;
+        $this->config = $config;
         $this->headers = [
             'UUID: ' . $this->uuid,
-            'account_type: ' . $this->accountType,
+            'account_type: ' . $this->account_type,
             'Content-Type:  data/gzencode and rsa public encrypt;charset=UTF-8'
         ];
+    }
+
+    public function __get($name)
+    {
+        return isset($this->config[$name]) ? $this->config[$name] : null;
+    }
+
+    /**
+     * @param $data
+     * @return null
+     */
+    public function pubEncrypt($data)
+    {
+        if (!is_string($data)) {
+            return null;
+        }
+        $ret = openssl_public_encrypt($data, $encrypted, self::PUBLIC_KEY);
+        if ($ret) {
+            return $encrypted;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -42,18 +66,9 @@ class Auth
     private function genPostData($data)
     {
         $gzData = gzencode(json_encode($data), 9);
-        $publicKey = <<<publicKey
------BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHn/hfvTLRXViBXTmBhNYEIJeG
-GGDkmrYBxCRelriLEYEcrwWrzp0au9nEISpjMlXeEW4+T82bCM22+JUXZpIga5qd
-BrPkjU08Ktf5n7Nsd7n9ZeI0YoAKCub3ulVExcxGeS3RVxFai9ozERlavpoTOdUz
-EH6YWHP4reFfpMpLzwIDAQAB
------END PUBLIC KEY-----
-publicKey;
-        $rsa = new RsaPublicEncrypt($publicKey);
         for ($index = 0, $enData = ''; $index < strlen($gzData); $index += 117) {
             $gzPackData = substr($gzData, $index, 117);
-            $enData .= $rsa->pubEncrypt($gzPackData);
+            $enData .= $this->pubEncrypt($gzPackData);
         }
         return $enData;
     }
@@ -64,16 +79,10 @@ publicKey;
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        //curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        //curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
-        //curl_setopt($curl, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-        //curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-        //curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        //curl_setopt($curl, CURLOPT_HEADER, 0);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $tmpInfo = curl_exec($curl);
@@ -134,15 +143,15 @@ publicKey;
     {
         $this->preLogin();
 
-        $loginData = array(
+        $loginData = [
             'username' => $this->username,
             'token' => $this->token,
             'functionName' => 'doLogin',
             'uuid' => $this->uuid,
-            'request' => array(
+            'request' => [
                 'password' => $this->password,
-            ),
-        );
+            ],
+        ];
         $res = $this->post(self::LOGIN_URL, $loginData);
 
         if ($res['code'] === 0) {
@@ -153,6 +162,8 @@ publicKey;
                 echo '--------------------doLogin End--------------------' . PHP_EOL;
                 return null;
             } else if ($retArray['retcode'] === 0) {
+                $this->ucid = $retArray['ucid'];
+                $this->st = $retArray['st'];
                 return [
                     'ucid' => $retArray['ucid'],
                     'st' => $retArray['st'],
@@ -166,6 +177,45 @@ publicKey;
             echo "[error] doLogin unsuccessfully with return code: {$res['code']}" . PHP_EOL;
             echo '--------------------doLogin End--------------------' . PHP_EOL;
             return null;
+        }
+    }
+
+    public function logout()
+    {
+        if ($this->ucid == null && $this->st == null)
+            return null;
+        $logoutData = [
+            'username' => $this->username,
+            'token' => $this->token,
+            'functionName' => 'doLogout',
+            'uuid' => $this->uuid,
+            'request' => [
+                'ucid' => $this->ucid,
+                'st' => $this->st,
+            ],
+        ];
+        $res = $this->post(self::LOGIN_URL, $logoutData);
+
+        if ($res['code'] === 0) {
+            $retData = gzdecode($res['data']);
+            $retArray = json_decode($retData, true);
+            if (!isset($retArray['retcode'])) {
+                echo "[error] doLogout return data format error: {$retData}" . PHP_EOL;
+                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                return false;
+            } else if ($retArray['retcode'] === 0) {
+                echo '[notice] doLogout successfully!' . PHP_EOL;
+                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                return true;
+            } else {
+                echo "[error] doLogout unsuccessfully with retcode: {$retArray['retcode']}" . PHP_EOL;
+                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                return false;
+            }
+        } else {
+            echo "[error] doLogout unsuccessfully with return code: {$res['code']}" . PHP_EOL;
+            echo '--------------------doLogout End--------------------' . PHP_EOL;
+            return false;
         }
     }
 }

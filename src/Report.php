@@ -2,50 +2,44 @@
 
 namespace Qqjt\BaiduTongji;
 
+use Qqjt\BaiduTongji\Auth;
+
 
 class Report
 {
-    /**
-     * @var string
-     */
-    private $token;
-
-    private $accountType;
-
-    private $username;
-
-    private $uuid;
-
-    private $ucid;
-
-    private $st;
+    private $config;
 
     private $headers;
 
+    private $data_header;
+
+    private $auth;
+
     const API_URL = 'https://api.baidu.com/json/tongji/v1/ReportService';
 
-    /**
-     * Report constructor.
-     * @param $accountType
-     * @param $username
-     * @param $token
-     * @param $uuid
-     * @param $ucid
-     * @param $st
-     */
-    public function __construct($accountType, $username, $token, $uuid, $ucid, $st)
+    public function __construct($config)
     {
-        $this->accountType = $accountType;
-        $this->username = $username;
-        $this->token = $token;
-        $this->ucid = $ucid;
-        $this->uuid = $uuid;
-        $this->st = $st;
+        $this->config = $config;
+        $this->auth = new Auth($config);
+
+        $this->auth->login();
         $this->headers = [
-            'UUID: ' . $uuid,
-            'USERID: ' . $ucid,
+            'UUID: ' . $this->uuid,
+            'USERID: ' . $this->auth->ucid,
             'Content-Type:  data/json;charset=UTF-8'
         ];
+
+        $this->data_header = [
+            'username' => $this->username,
+            'password' => $this->auth->st,
+            'token' => $this->token,
+            'account_type' => $this->account_type
+        ];
+    }
+
+    public function __get($name)
+    {
+        return isset($this->config[$name]) ? $this->config[$name] : null;
     }
 
     private function genPostData($data)
@@ -59,16 +53,10 @@ class Report
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        //curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        //curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
-        //curl_setopt($curl, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-        //curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-        //curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        //curl_setopt($curl, CURLOPT_HEADER, 0);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $tmpRet = curl_exec($curl);
@@ -86,21 +74,16 @@ class Report
         } else {
             echo "[error] SERVICE ERROR: {$tmpRet}" . PHP_EOL;
         }
+        return null;
     }
 
     public function getSiteList()
     {
         $data = [
-            'header' => [
-                'username' => $this->username,
-                'password' => $this->st,
-                'token' => $this->token,
-                'account_type' => $this->accountType,
-            ],
+            'header' => $this->data_header,
             'body' => null,
         ];
-
-        return $this->post(self::API_URL.'/getSiteList', $data);
+        return $this->post(self::API_URL . '/getSiteList', $data);
     }
 
     /**
@@ -110,14 +93,9 @@ class Report
     public function getData($parameters)
     {
         $data = [
-            'header' => array(
-                'username' => $this->username,
-                'password' => $this->st,
-                'token' => $this->token,
-                'account_type' => $this->accountType,
-            ),
+            'header' => $this->data_header,
             'body' => $parameters,
         ];
-        return $this->post(self::API_URL.'/getData', $data);
+        return $this->post(self::API_URL . '/getData', $data);
     }
 }
