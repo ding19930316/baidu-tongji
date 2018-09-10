@@ -82,7 +82,6 @@ publicKey;
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $tmpInfo = curl_exec($curl);

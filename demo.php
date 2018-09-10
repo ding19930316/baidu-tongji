@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
+use Qqjt\BaiduTongji\Auth;
 use Qqjt\BaiduTongji\Report;
 
 $config = [
@@ -11,13 +12,19 @@ $config = [
      * 4：哥伦布账号
      */
     'account_type' => 1,
-    'username' => 'aaa',
-    'password' => 'bbb',
-    'token' => 'ccc',
-    'uuid' => 'ddd',
+    'username' => '',
+    'password' => '',
+    'token' => '',
+    'uuid' => '',
 ];
 
-$report = new Report($config);
+$auth = new Auth($config);
+
+$res = $auth->login();
+
+$reportConfig = array_merge($config, $res);
+
+$report = new Report($reportConfig);
 
 $siteRes = $report->getSiteList();
 var_dump($siteRes);
@@ -35,3 +42,5 @@ $parameters = [
 ];
 $dataRes = $report->getData($parameters);
 var_dump($dataRes);
+
+$auth->logout();

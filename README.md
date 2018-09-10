@@ -12,31 +12,41 @@ $ composer require qqjt/baidu-tongji
 ## 使用
 
 ```php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
 use Qqjt\BaiduTongji\Auth;
 use Qqjt\BaiduTongji\Report;
 
-$accountType = 1; //ZhanZhang:1,FengChao:2,Union:3,Columbus:4
-$username = 'xxxx';
-$password = 'yyyy';
-$token = 'zzzz';
-$uuid = 'abcd1234';
+$config = [
+    /**
+     * 1：站长账号
+     * 2：凤巢账号
+     * 3：联盟账号
+     * 4：哥伦布账号
+     */
+    'account_type' => 1,
+    'username' => 'aaa',
+    'password' => 'bbb',
+    'token' => 'ccc',
+    'uuid' => 'ddd',
+];
 
-$auth = new Auth($accountType, $username, $password, $token, $uuid);
+$auth = new Auth($config);
 
 $res = $auth->login();
 
-$ucid = $res['ucid'];
-$st = $res['st'];
+$config = array_merge($config, $res);
 
-$report = new Report($accountType, $username, $token, $uuid, $ucid, $st);
+$report = new Report($config);
 
 $siteRes = $report->getSiteList();
-
 var_dump($siteRes);
+
 $siteList = $siteRes['body']['data'][0]['list'];
 $siteId = $siteList[0]['site_id'];
-
-$parameters = ['site_id' => $siteId,        //站点ID
+$parameters = [
+    'site_id' => $siteId,                   //站点ID
     'method' => 'trend/time/a',             //趋势分析报告
     'start_date' => '20160501',             //所查询数据的起始日期
     'end_date' => '20160531',               //所查询数据的结束日期
@@ -44,9 +54,10 @@ $parameters = ['site_id' => $siteId,        //站点ID
     'max_results' => 0,                     //返回所有条数
     'gran' => 'day',                        //按天粒度
 ];
-
 $dataRes = $report->getData($parameters);
 var_dump($dataRes);
+
+$auth->logout();
 ```
 
 ## License
