@@ -86,7 +86,7 @@ publicKey;
 
         $tmpInfo = curl_exec($curl);
         if (curl_errno($curl)) {
-            echo '[error] CURL ERROR: ' . curl_error($curl) . PHP_EOL;
+            //echo '[error] CURL ERROR: ' . curl_error($curl) . PHP_EOL;
         }
         curl_close($curl);
 
@@ -119,19 +119,19 @@ publicKey;
             $retData = gzdecode($res['data']);
             $retArray = json_decode($retData, true);
             if (!isset($retArray['needAuthCode']) || $retArray['needAuthCode'] === true) {
-                echo "[error] preLogin return data format error: {$retData}" . PHP_EOL;
-                echo '--------------------preLogin End--------------------' . PHP_EOL;
+                //echo "[error] preLogin return data format error: {$retData}" . PHP_EOL;
+                //echo '--------------------preLogin End--------------------' . PHP_EOL;
                 return false;
             } else if ($retArray['needAuthCode'] === false) {
                 return true;
             } else {
-                echo "[error] unexpected preLogin return data: {$retData}" . PHP_EOL;
-                echo '--------------------preLogin End--------------------' . PHP_EOL;
+                //echo "[error] unexpected preLogin return data: {$retData}" . PHP_EOL;
+                //echo '--------------------preLogin End--------------------' . PHP_EOL;
                 return false;
             }
         } else {
-            echo "[error] preLogin unsuccessfully with return code: {$res['code']}" . PHP_EOL;
-            echo '--------------------preLogin End--------------------' . PHP_EOL;
+            //echo "[error] preLogin unsuccessfully with return code: {$res['code']}" . PHP_EOL;
+            //echo '--------------------preLogin End--------------------' . PHP_EOL;
             return false;
         }
 
@@ -157,8 +157,8 @@ publicKey;
             $retData = gzdecode($res['data']);
             $retArray = json_decode($retData, true);
             if (!isset($retArray['retcode']) || !isset($retArray['ucid']) || !isset($retArray['st'])) {
-                echo "[error] doLogin return data format error: {$retData}" . PHP_EOL;
-                echo '--------------------doLogin End--------------------' . PHP_EOL;
+                //echo "[error] doLogin return data format error: {$retData}" . PHP_EOL;
+                //echo '--------------------doLogin End--------------------' . PHP_EOL;
                 return null;
             } else if ($retArray['retcode'] === 0) {
                 $this->ucid = $retArray['ucid'];
@@ -168,13 +168,13 @@ publicKey;
                     'st' => $retArray['st'],
                 ];
             } else {
-                echo "[error] doLogin unsuccessfully with retcode: {$retArray['retcode']}" . PHP_EOL;
-                echo '--------------------doLogin End--------------------' . PHP_EOL;
+                //echo "[error] doLogin unsuccessfully with retcode: {$retArray['retcode']}" . PHP_EOL;
+                //echo '--------------------doLogin End--------------------' . PHP_EOL;
                 return null;
             }
         } else {
-            echo "[error] doLogin unsuccessfully with return code: {$res['code']}" . PHP_EOL;
-            echo '--------------------doLogin End--------------------' . PHP_EOL;
+            //echo "[error] doLogin unsuccessfully with return code: {$res['code']}" . PHP_EOL;
+            //echo '--------------------doLogin End--------------------' . PHP_EOL;
             return null;
         }
     }
@@ -199,21 +199,21 @@ publicKey;
             $retData = gzdecode($res['data']);
             $retArray = json_decode($retData, true);
             if (!isset($retArray['retcode'])) {
-                echo "[error] doLogout return data format error: {$retData}" . PHP_EOL;
-                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                //echo "[error] doLogout return data format error: {$retData}" . PHP_EOL;
+                //echo '--------------------doLogout End--------------------' . PHP_EOL;
                 return false;
             } else if ($retArray['retcode'] === 0) {
-                echo '[notice] doLogout successfully!' . PHP_EOL;
-                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                //echo '[notice] doLogout successfully!' . PHP_EOL;
+                //echo '--------------------doLogout End--------------------' . PHP_EOL;
                 return true;
             } else {
-                echo "[error] doLogout unsuccessfully with retcode: {$retArray['retcode']}" . PHP_EOL;
-                echo '--------------------doLogout End--------------------' . PHP_EOL;
+                //echo "[error] doLogout unsuccessfully with retcode: {$retArray['retcode']}" . PHP_EOL;
+                //echo '--------------------doLogout End--------------------' . PHP_EOL;
                 return false;
             }
         } else {
-            echo "[error] doLogout unsuccessfully with return code: {$res['code']}" . PHP_EOL;
-            echo '--------------------doLogout End--------------------' . PHP_EOL;
+            //echo "[error] doLogout unsuccessfully with return code: {$res['code']}" . PHP_EOL;
+            //echo '--------------------doLogout End--------------------' . PHP_EOL;
             return false;
         }
     }

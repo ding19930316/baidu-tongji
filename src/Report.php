@@ -55,7 +55,7 @@ class Report
 
         $tmpRet = curl_exec($curl);
         if (curl_errno($curl)) {
-            echo '[error] CURL ERROR: ' . curl_error($curl) . PHP_EOL;
+            //echo '[error] CURL ERROR: ' . curl_error($curl) . PHP_EOL;
         }
         curl_close($curl);
         $tmpArray = json_decode($tmpRet, true);
@@ -66,7 +66,7 @@ class Report
                 'raw' => $tmpRet,
             ];
         } else {
-            echo "[error] SERVICE ERROR: {$tmpRet}" . PHP_EOL;
+            //echo "[error] SERVICE ERROR: {$tmpRet}" . PHP_EOL;
         }
         return null;
     }
